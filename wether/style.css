@@ -1,0 +1,118 @@
+/* Reset & Base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body, html {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+#background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+  filter: brightness(0.6);
+}
+
+/* Main Container */
+.container {
+  max-width: 700px;
+  margin: 50px auto;
+  padding: 40px 30px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  color: white;
+  text-align: center;
+}
+
+h1 {
+  color: #00ffff;
+  margin-bottom: 20px;
+}
+
+/* Form Styling */
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+input[type="text"] {
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  width: 60%;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 10px;
+  background: #00bfff;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: #008ecc;
+}
+
+/* Weather Info */
+.weather-info {
+  text-align: left;
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.weather-info p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+/* Chart Styling */
+canvas {
+  margin-top: 30px;
+  width: 100% !important;
+  max-height: 300px;
+}
+
+/* Animations */
+.hidden {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+  }
+
+  form {
+    flex-direction: column;
+  }
+}
+
+

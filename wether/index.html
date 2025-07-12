@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI-Powered Weather App</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🌤 AI Weather App</h1>
+
+    <!-- City input and buttons -->
+    <form id="weather-form">
+      <input type="text" id="city-input" placeholder="Enter city name" required>
+      <button type="submit">Get Weather</button>
+      <button type="button" id="voice-btn">🎤</button>
+      <button type="button" id="location-btn">📍 My Location</button>
+    </form>
+
+    <!-- Weather display -->
+    <div class="weather-info hidden">
+      <h2 id="city-name"></h2>
+      <p id="description"></p>
+      <p><strong>Temperature:</strong> <span id="temp"></span>°C</p>
+      <p><strong>Humidity:</strong> <span id="humidity"></span>%</p>
+      <p><strong>Wind:</strong> <span id="wind"></span> km/h</p>
+      <p><strong>Tomorrow (AI Forecast):</strong> <span id="ai-forecast"></span></p>
+    </div>
+
+    <!-- Chart for 5-day forecast -->
+    <canvas id="forecastChart" class="hidden"></canvas>
+  </div>
+
+  <!-- Background image container -->
+  <div id="background"></div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
+
+</html>
+
+
+
+
+
+
+
+
