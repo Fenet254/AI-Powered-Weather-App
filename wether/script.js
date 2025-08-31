@@ -20,36 +20,31 @@ form.addEventListener("submit", (e) => {
     fetchWeather(city);
   }
 });
-
 function fetchWeather(city) {
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
+  const url = `http://localhost:5000/weather?city=${city}`;
 
   fetch(url)
     .then((res) => res.json())
     .then((data) => {
-      if (data.cod === 200) {
-        cityName.textContent = `${data.name}, ${data.sys.country}`;
-        description.textContent = data.weather[0].description;
-        temp.textContent = data.main.temp.toFixed(1);
-        humidity.textContent = data.main.humidity;
-        wind.textContent = (data.wind.speed * 3.6).toFixed(1); // m/s to km/h
-
-        const forecast = simulateAI(
-          data.main.temp,
-          data.main.humidity,
-          data.wind.speed
-        );
-        aiForecast.textContent = forecast;
-
-        weatherInfo.classList.remove("hidden");
-      } else {
+      if (data.error) {
         alert("City not found. Try again.");
+        return;
       }
+
+      cityName.textContent = `${data.city}, ${data.country}`;
+      description.textContent = data.description;
+      temp.textContent = data.temp;
+      humidity.textContent = data.humidity;
+      wind.textContent = data.wind;
+      aiForecast.textContent = data.aiForecast;
+
+      weatherInfo.classList.remove("hidden");
     })
     .catch(() => {
       alert("Error fetching data. Try again.");
     });
 }
+
 
 // Simulated AI forecast logic
 function simulateAI(temp, humidity, wind) {
