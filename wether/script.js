@@ -1,5 +1,6 @@
 function fetchWeather(city) {
-  const url = `http://localhost:5000/api/weather?city=${city}`;
+  // Point to your PHP backend instead of Node.js
+  const url = `http://localhost/weather.php?city=${encodeURIComponent(city)}`;
 
   fetch(url)
     .then((res) => res.json())
@@ -9,6 +10,7 @@ function fetchWeather(city) {
         return;
       }
 
+      // Update DOM with weather info
       cityName.textContent = `${data.city}, ${data.country}`;
       description.textContent = data.description;
       temp.textContent = data.temp.toFixed(1);
@@ -18,22 +20,8 @@ function fetchWeather(city) {
 
       weatherInfo.classList.remove("hidden");
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error("Error fetching data:", err);
       alert("Error fetching data. Try again.");
     });
-}
-
-// Simulated AI forecast logic
-function simulateAI(temp, humidity, wind) {
-  const tomorrowTemp = (parseFloat(temp) + Math.random() * 3 - 1.5).toFixed(1);
-  const condition =
-    tomorrowTemp > 30
-      ? "Sunny & Hot"
-      : tomorrowTemp > 20
-      ? "Warm & Breezy"
-      : tomorrowTemp > 10
-      ? "Cool & Cloudy"
-      : "Chilly or Rainy";
-
-  return `${tomorrowTemp}°C - Likely ${condition}`;
 }
