@@ -18,7 +18,7 @@
   "homepage": "https://github.com/Fenet254/AI-Powered-Weather-App#readme",
   "description": "",
   "dependencies": {
-    "axios": "^1.11.0",
+    "axios": "^1.12.2",
     "cors": "^2.8.5",
     "express": "^5.1.0"
   }
