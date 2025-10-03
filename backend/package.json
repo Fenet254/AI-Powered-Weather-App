@@ -1,0 +1,22 @@
+{
+  "name": "ai-weather-backend",
+  "version": "1.0.0",
+  "description": "Backend for AI Powered Weather App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "keywords": [
+    "weather",
+    "ai",
+    "api"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
