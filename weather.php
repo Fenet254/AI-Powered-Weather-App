@@ -1,43 +1,38 @@
 <?php
-header("Content-Type: application/json");
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Get city from query string
-$city = isset($_GET['city']) ? htmlspecialchars($_GET['city']) : null;
+$method = $_SERVER['REQUEST_METHOD'];
 
-if (!$city) {
-    echo json_encode(["error" => "City is required"]);
-    exit;
-}
-
-// ---- Simulated Weather Data ----
-// Normally, you'd call a real API like OpenWeatherMap here.
-$weatherData = [
-    "city" => $city,
-    "country" => "ET", // Example: Ethiopia
-    "description" => "Partly Cloudy",
-    "temp" => rand(10, 35) + (rand(0, 9) / 10), // random temp with decimals
-    "humidity" => rand(40, 90),
-    "wind" => rand(1, 15)
-];
-
-// ---- Simulated AI Forecast ----
-function simulateAI($temp, $humidity, $wind) {
-    $tomorrowTemp = round($temp + (mt_rand(-15, 15) / 10), 1); // +/- 1.5 variation
-
-    if ($tomorrowTemp > 30) {
-        $condition = "Sunny & Hot";
-    } elseif ($tomorrowTemp > 20) {
-        $condition = "Warm & Breezy";
-    } elseif ($tomorrowTemp > 10) {
-        $condition = "Cool & Cloudy";
+if ($method === 'GET') {
+    $city = $_GET['city'] ?? '';
+    $lat = $_GET['lat'] ?? '';
+    $lon = $_GET['lon'] ?? '';
+    
+    $apiKey = 'your_openweather_api_key';
+    
+    if (!empty($lat) && !empty($lon)) {
+        $url = "https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric";
+    } else if (!empty($city)) {
+        $url = "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric";
     } else {
-        $condition = "Chilly or Rainy";
+        http_response_code(400);
+        echo json_encode(['error' => 'City or coordinates required']);
+        exit;
     }
-
-    return "{$tomorrowTemp}°C - Likely {$condition}";
+    
+    $response = file_get_contents($url);
+    
+    if ($response === FALSE) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to fetch weather data']);
+    } else {
+        echo $response;
+    }
+} else {
+    http_response_code(405);
+    echo json_encode(['error' => 'Method not allowed']);
 }
-
-$weatherData["aiForecast"] = simulateAI($weatherData["temp"], $weatherData["humidity"], $weatherData["wind"]);
-
-// Return JSON
-echo json_encode($weatherData, JSON_PRETTY_PRINT);
+?>
