@@ -1,205 +1,307 @@
-import React, { useState, useEffect } from "react";
-import "./WeatherApp.css";
+const { useState, useEffect } = React;
 
-const WeatherApp = () => {
-  const [currentWeather, setCurrentWeather] = useState({
-    temperature: 14,
-    condition: "Mostly Clear",
-    humidity: 75,
-    wind: 15,
-    feelsLike: 12,
-    city: "San Francisco",
-    country: "USA",
-  });
+function Home() {
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [city, setCity] = useState("");
+  const [error, setError] = useState("");
 
-  const [forecast, setForecast] = useState([
-    { day: "Monday", icon: "sunny", low: 10, high: 16 },
-    { day: "Tuesday", icon: "partly-cloudy", low: 11, high: 18 },
-    { day: "Wednesday", icon: "cloudy", low: 12, high: 17 },
-    { day: "Thursday", icon: "rainy", low: 9, high: 15 },
-    { day: "Friday", icon: "sunny", low: 13, high: 19 },
-  ]);
+  const getWeather = async (cityName = city) => {
+    if (!cityName.trim()) return;
 
-  const [unit, setUnit] = useState("celsius");
-  const [activeTab, setActiveTab] = useState("home");
-  const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/weather?city=${encodeURIComponent(cityName)}`
+      );
+      const data = await response.json();
 
-  // Toggle between Celsius and Fahrenheit
-  const toggleUnit = () => {
-    setUnit(unit === "celsius" ? "fahrenheit" : "celsius");
-  };
-
-  // Convert temperature based on selected unit
-  const convertTemp = (temp) => {
-    if (unit === "fahrenheit") {
-      return Math.round((temp * 9) / 5 + 32);
-    }
-    return temp;
-  };
-
-  // Handle city search
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // In a real app, this would call a weather API
-      setCurrentWeather({
-        ...currentWeather,
-        city: searchQuery,
-      });
-      setSearchQuery("");
-      setSearchVisible(false);
+      if (data.cod === 200) {
+        setWeather(data);
+      } else {
+        setError(data.message || "City not found");
+      }
+    } catch (err) {
+      setError("Failed to fetch weather data");
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Simulate loading data
-  useEffect(() => {
-    // In a real app, this would fetch data from a weather API
-    const timer = setTimeout(() => {
-      console.log("Data would be fetched from API here");
-    }, 1000);
+  const getLocationWeather = () => {
+    if (navigator.geolocation) {
+      setLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/weather?lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+            if (data.cod === 200) {
+              setWeather(data);
+              setCity(data.name);
+            }
+          } catch (err) {
+            setError("Failed to fetch location weather");
+          } finally {
+            setLoading(false);
+          }
+        },
+        (error) => {
+          setError("Location access denied");
+          setLoading(false);
+        }
+      );
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, [currentWeather.city]);
+  const getWeatherIcon = (condition) => {
+    const icons = {
+      Clear: "fa-sun",
+      Clouds: "fa-cloud",
+      Rain: "fa-cloud-rain",
+      Drizzle: "fa-cloud-drizzle",
+      Thunderstorm: "fa-bolt",
+      Snow: "fa-snowflake",
+      Mist: "fa-smog",
+      Smoke: "fa-smog",
+      Haze: "fa-smog",
+      Dust: "fa-smog",
+      Fog: "fa-smog",
+      Sand: "fa-smog",
+      Ash: "fa-smog",
+      Squall: "fa-wind",
+      Tornado: "fa-tornado",
+    };
+    return icons[condition] || "fa-cloud";
+  };
 
-  return (
-    <div className="weather-app">
-      <header className="app-header">
-        <div className="location-container">
-          <h1>
-            {currentWeather.city},{" "}
-            <span className="country">{currentWeather.country}</span>
-          </h1>
-          <button
-            className="icon-button"
-            onClick={() => setSearchVisible(!searchVisible)}
-            aria-label="Search city"
-          >
-            <span className="material-symbols-outlined">search</span>
-          </button>
-        </div>
+  return React.createElement(
+    "div",
+    { className: "home-container" },
+    React.createElement(
+      "header",
+      { className: "app-header" },
+      React.createElement("h1", null, "🌤️ AI Weather App"),
+      React.createElement(
+        "p",
+        null,
+        "Get intelligent weather insights and recommendations"
+      )
+    ),
 
-        {searchVisible && (
-          <form className="search-form" onSubmit={handleSearch}>
-            <input
-              type="text"
-              placeholder="Enter city name"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit">Search</button>
-          </form>
-        )}
-      </header>
+    React.createElement(
+      "div",
+      { className: "search-section" },
+      React.createElement(
+        "div",
+        { className: "search-box" },
+        React.createElement("input", {
+          type: "text",
+          placeholder: "Enter city name...",
+          value: city,
+          onChange: (e) => setCity(e.target.value),
+          onKeyPress: (e) => e.key === "Enter" && getWeather(),
+        }),
+        React.createElement(
+          "button",
+          { onClick: () => getWeather() },
+          React.createElement("i", { className: "fas fa-search" })
+        ),
+        React.createElement(
+          "button",
+          {
+            className: "location-btn",
+            onClick: getLocationWeather,
+            title: "Use current location",
+          },
+          React.createElement("i", { className: "fas fa-location-arrow" })
+        )
+      )
+    ),
 
-      <main className="main-content">
-        <div className="weather-card current-weather">
-          <div className="weather-primary">
-            <div className="temperature-section">
-              <p className="temperature" onClick={toggleUnit}>
-                {convertTemp(currentWeather.temperature)}°
-                <span className="unit">{unit === "celsius" ? "C" : "F"}</span>
-              </p>
-              <p className="condition">{currentWeather.condition}</p>
-            </div>
-            <img
-              className="weather-icon"
-              src={`https://lh3.googleusercontent.com/aida-public/AB6AXuCeKMevDKKpV-7F15X9MUg5CvzFPiBFJN2XFsyelqLkZX_rAKaFi9IClBIuoTr8OiPwxIwOOnwFkcBF0XVS83DnFMZ-LM2X_nSl6i22xn1PjqKMZEqM9Oe5IA6Kl1VeGr7DOCBi5WRLqBXX_QyZ-z9lT0bSKizddHXANJVDwbsLh2-DLW-Mb3JouSNWvID3o-TCAtv_MolB0n5J-Fi5VFsooRUI5rkpM2vnqIM7dY_KxN91PSvmBpgWWpercqBz21u7DeO6lIRCTI8`}
-              alt="Weather condition"
-            />
-          </div>
+    loading &&
+      React.createElement(
+        "div",
+        { className: "loading" },
+        React.createElement("i", { className: "fas fa-spinner fa-spin" }),
+        " Loading weather data..."
+      ),
 
-          <div className="weather-details">
-            <div className="detail-item">
-              <p className="detail-label">Humidity</p>
-              <p className="detail-value">{currentWeather.humidity}%</p>
-            </div>
-            <div className="detail-item">
-              <p className="detail-label">Wind</p>
-              <p className="detail-value">{currentWeather.wind} km/h</p>
-            </div>
-            <div className="detail-item">
-              <p className="detail-label">Feels like</p>
-              <p className="detail-value">
-                {convertTemp(currentWeather.feelsLike)}°
-              </p>
-            </div>
-          </div>
-        </div>
+    error &&
+      React.createElement(
+        "div",
+        { className: "error" },
+        React.createElement("i", { className: "fas fa-exclamation-triangle" }),
+        " ",
+        error
+      ),
 
-        <div className="weather-card ai-forecast">
-          <div className="forecast-content">
-            <span className="material-symbols-outlined forecast-icon">
-              model_training
-            </span>
-            <div>
-              <p className="forecast-title">AI Forecast</p>
-              <p className="forecast-text">
-                Tomorrow will be sunny with a high of{" "}
-                {unit === "celsius" ? "20°C" : "68°F"}.
-              </p>
-            </div>
-          </div>
-        </div>
+    weather &&
+      React.createElement(
+        "div",
+        { className: "weather-card" },
+        React.createElement(
+          "div",
+          { className: "weather-header" },
+          React.createElement(
+            "h2",
+            null,
+            weather.name,
+            ", ",
+            weather.sys.country
+          ),
+          React.createElement(
+            "p",
+            { className: "date" },
+            new Date().toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          )
+        ),
 
-        <div className="forecast-section">
-          <h2>5-Day Forecast</h2>
-          <div className="forecast-list">
-            {forecast.map((dayForecast, index) => (
-              <div key={index} className="forecast-item">
-                <p className="day">{dayForecast.day}</p>
-                <img
-                  className="forecast-icon-small"
-                  src={`https://lh3.googleusercontent.com/aida-public/AB6AXuBCOSxbSN6JSOTmE7CfcHUIC9ppEKTunB46R62vr73rVOzhP1KyaFzMkZRYGkMJ40XuJ3g7yP5ZfMQsxMWvo26IT4hwHdrdzTiwNM5MOIwBMV5pzZDaMWUR24L_dxiNC0_3gGPYyfI0_9ik-I0AzhXpaWdjuVVY_DG34z-k4Oiwet0R3eVfZUe0LQj7ptGdOFBQbXLigeP0Nms1rEMxgpnbK3EQDbqtlXfilj_YzmVLn9UzSGxq-Cb-GZcLXo1pz4LyVGMrQJCdIf0`}
-                  alt={dayForecast.icon}
-                />
-                <p className="temperature-range">
-                  {convertTemp(dayForecast.low)}° /{" "}
-                  {convertTemp(dayForecast.high)}°
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </main>
+        React.createElement(
+          "div",
+          { className: "weather-main" },
+          React.createElement(
+            "div",
+            { className: "temperature-section" },
+            React.createElement("i", {
+              className: `fas ${getWeatherIcon(
+                weather.weather[0].main
+              )} weather-icon`,
+            }),
+            React.createElement(
+              "div",
+              { className: "temp" },
+              Math.round(weather.main.temp),
+              "°C"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "weather-info" },
+            React.createElement(
+              "p",
+              { className: "description" },
+              weather.weather[0].description
+            ),
+            React.createElement(
+              "div",
+              { className: "details" },
+              React.createElement(
+                "div",
+                { className: "detail-item" },
+                React.createElement("i", {
+                  className: "fas fa-temperature-low",
+                }),
+                " Feels like: ",
+                Math.round(weather.main.feels_like),
+                "°C"
+              ),
+              React.createElement(
+                "div",
+                { className: "detail-item" },
+                React.createElement("i", { className: "fas fa-tint" }),
+                " Humidity: ",
+                weather.main.humidity,
+                "%"
+              ),
+              React.createElement(
+                "div",
+                { className: "detail-item" },
+                React.createElement("i", { className: "fas fa-wind" }),
+                " Wind: ",
+                weather.wind.speed,
+                " m/s"
+              ),
+              React.createElement(
+                "div",
+                { className: "detail-item" },
+                React.createElement("i", {
+                  className: "fas fa-compress-arrows-alt",
+                }),
+                " Pressure: ",
+                weather.main.pressure,
+                " hPa"
+              )
+            )
+          )
+        ),
 
-      <footer className="app-footer">
-        <nav className="bottom-nav">
-          <button
-            className={`nav-item ${activeTab === "home" ? "active" : ""}`}
-            onClick={() => setActiveTab("home")}
-          >
-            <span className="material-symbols-outlined">home</span>
-            <span className="nav-label">Home</span>
-          </button>
-          <button
-            className={`nav-item ${activeTab === "search" ? "active" : ""}`}
-            onClick={() => {
-              setActiveTab("search");
-              setSearchVisible(true);
-            }}
-          >
-            <span className="material-symbols-outlined">search</span>
-            <span className="nav-label">Search</span>
-          </button>
-          <button
-            className={`nav-item ${activeTab === "maps" ? "active" : ""}`}
-            onClick={() => setActiveTab("maps")}
-          >
-            <span className="material-symbols-outlined">map</span>
-            <span className="nav-label">Maps</span>
-          </button>
-          <button
-            className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
-            onClick={() => setActiveTab("settings")}
-          >
-            <span className="material-symbols-outlined">settings</span>
-            <span className="nav-label">Settings</span>
-          </button>
-        </nav>
-      </footer>
-    </div>
+        weather.aiAnalysis &&
+          React.createElement(
+            "div",
+            { className: "ai-analysis" },
+            React.createElement(
+              "h3",
+              null,
+              React.createElement("i", { className: "fas fa-robot" }),
+              " AI Analysis"
+            ),
+            React.createElement(
+              "div",
+              { className: "comfort-index" },
+              "Comfort Index: ",
+              React.createElement(
+                "span",
+                {
+                  className: `index-${Math.floor(
+                    weather.aiAnalysis.comfortIndex / 25
+                  )}`,
+                },
+                weather.aiAnalysis.comfortIndex,
+                "/100"
+              )
+            ),
+            React.createElement(
+              "p",
+              { className: "analysis-text" },
+              weather.aiAnalysis.analysis
+            ),
+            React.createElement(
+              "div",
+              { className: "recommendations" },
+              React.createElement("h4", null, "Recommendations:"),
+              React.createElement(
+                "ul",
+                null,
+                weather.aiAnalysis.recommendations.map((rec, index) =>
+                  React.createElement("li", { key: index }, rec)
+                )
+              )
+            )
+          )
+      ),
+
+    React.createElement(
+      "nav",
+      { className: "bottom-nav" },
+      React.createElement(
+        "a",
+        { href: "/", className: "nav-item active" },
+        React.createElement("i", { className: "fas fa-home" }),
+        React.createElement("span", null, "Current")
+      ),
+      React.createElement(
+        "a",
+        { href: "/forecast", className: "nav-item" },
+        React.createElement("i", { className: "fas fa-chart-line" }),
+        React.createElement("span", null, "Forecast")
+      ),
+      React.createElement(
+        "a",
+        { href: "/analysis", className: "nav-item" },
+        React.createElement("i", { className: "fas fa-chart-bar" }),
+        React.createElement("span", null, "Analysis")
+      )
+    )
   );
-};
-
-export default WeatherApp;
+}

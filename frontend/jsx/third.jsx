@@ -1,299 +1,229 @@
-import React, { useState, useEffect } from "react";
-import "./WeatherAdmin.css";
+const { useState, useEffect } = React;
 
-const WeatherAdmin = () => {
-  const [cities, setCities] = useState([
-    { id: 1, name: "New York", temp: 25, updated: "2h ago", forecast: "Sunny" },
-    {
-      id: 2,
-      name: "Los Angeles",
-      temp: 28,
-      updated: "1h ago",
-      forecast: "Clear",
-    },
-    { id: 3, name: "Chicago", temp: 22, updated: "3h ago", forecast: "Cloudy" },
-    {
-      id: 4,
-      name: "Houston",
-      temp: 27,
-      updated: "4h ago",
-      forecast: "Partly Cloudy",
-    },
-    { id: 5, name: "Phoenix", temp: 24, updated: "2h ago", forecast: "Sunny" },
-    {
-      id: 6,
-      name: "Philadelphia",
-      temp: 26,
-      updated: "1h ago",
-      forecast: "Rainy",
-    },
-  ]);
+function Third() {
+  const [analysisData, setAnalysisData] = useState(null);
+  const [city, setCity] = useState("");
 
-  const [stats, setStats] = useState({
-    citiesTracked: 150,
-    apiCalls: 12345,
-    uptime: 99.9,
-  });
+  const getAnalysis = async (cityName = city) => {
+    if (!cityName.trim()) return;
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "error",
-      message: "API Error: Rate limit exceeded",
-      time: "10 minutes ago",
-    },
-  ]);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/weather?city=${encodeURIComponent(cityName)}`
+      );
+      const data = await response.json();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("settings");
-  const [temperatureUnit, setTemperatureUnit] = useState("celsius");
-  const [apiKey, setApiKey] = useState("••••••••••••••••");
-  const [showApiKeyForm, setShowApiKeyForm] = useState(false);
-  const [newApiKey, setNewApiKey] = useState("");
-
-  // Simulate data refresh
-  const refreshData = () => {
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      const updatedCities = cities.map((city) => ({
-        ...city,
-        temp: Math.floor(Math.random() * 15) + 20, // Random temp between 20-35
-        updated: "Just now",
-      }));
-
-      setCities(updatedCities);
-      setStats({
-        ...stats,
-        apiCalls: stats.apiCalls + 1,
-      });
-      setIsLoading(false);
-    }, 1500);
-  };
-
-  // Toggle temperature unit
-  const toggleTemperatureUnit = () => {
-    setTemperatureUnit((prevUnit) =>
-      prevUnit === "celsius" ? "fahrenheit" : "celsius"
-    );
-  };
-
-  // Convert temperature based on selected unit
-  const convertTemperature = (temp) => {
-    if (temperatureUnit === "fahrenheit") {
-      return Math.round((temp * 9) / 5 + 32);
-    }
-    return temp;
-  };
-
-  // Handle API key update
-  const handleApiKeyUpdate = (e) => {
-    e.preventDefault();
-    if (newApiKey.trim()) {
-      setApiKey(newApiKey);
-      setNewApiKey("");
-      setShowApiKeyForm(false);
-
-      // Add success notification
-      setNotifications([
-        ...notifications,
-        {
-          id: Date.now(),
-          type: "success",
-          message: "API Key updated successfully",
-          time: "Just now",
-        },
-      ]);
+      if (data.cod === 200) {
+        setAnalysisData(data);
+      }
+    } catch (err) {
+      console.error("Error:", err);
     }
   };
 
-  // Format temperature display
-  const formatTemperature = (temp) => {
-    return `${convertTemperature(temp)}°${
-      temperatureUnit === "celsius" ? "C" : "F"
-    }`;
+  const getComfortLevel = (index) => {
+    if (index >= 80) return { level: "Excellent", color: "#10b981" };
+    if (index >= 60) return { level: "Good", color: "#3b82f6" };
+    if (index >= 40) return { level: "Fair", color: "#f59e0b" };
+    if (index >= 20) return { level: "Poor", color: "#ef4444" };
+    return { level: "Very Poor", color: "#dc2626" };
   };
 
-  // Calculate time ago
-  const getTimeAgo = (timeString) => {
-    if (timeString === "Just now") return timeString;
+  return React.createElement(
+    "div",
+    { className: "analysis-container" },
+    React.createElement(
+      "header",
+      { className: "app-header" },
+      React.createElement("h1", null, "📊 Weather Analysis"),
+      React.createElement(
+        "p",
+        null,
+        "Detailed weather insights and comfort analysis"
+      )
+    ),
 
-    // In a real app, this would calculate from actual timestamps
-    return timeString;
-  };
+    React.createElement(
+      "div",
+      { className: "search-section" },
+      React.createElement(
+        "div",
+        { className: "search-box" },
+        React.createElement("input", {
+          type: "text",
+          placeholder: "Enter city name for analysis...",
+          value: city,
+          onChange: (e) => setCity(e.target.value),
+          onKeyPress: (e) => e.key === "Enter" && getAnalysis(),
+        }),
+        React.createElement(
+          "button",
+          { onClick: () => getAnalysis() },
+          React.createElement("i", { className: "fas fa-search" })
+        )
+      )
+    ),
 
-  return (
-    <div className="weather-admin">
-      <header className="admin-header">
-        <div className="header-content">
-          <button className="menu-button">
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-          <h1 className="header-title">Weather Admin</h1>
-          <div className="header-placeholder"></div>
-        </div>
-      </header>
+    analysisData &&
+      analysisData.aiAnalysis &&
+      React.createElement(
+        "div",
+        { className: "analysis-content" },
+        React.createElement("h2", null, analysisData.name, " Weather Analysis"),
 
-      <main className="admin-main">
-        <section className="overview-section">
-          <h2 className="section-title">Overview</h2>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <p className="stat-label">Total Cities Tracked</p>
-              <p className="stat-value">{stats.citiesTracked}</p>
-            </div>
-            <div className="stat-card">
-              <p className="stat-label">Total API Calls</p>
-              <p className="stat-value">{stats.apiCalls.toLocaleString()}</p>
-            </div>
-            <div className="stat-card">
-              <p className="stat-label">Uptime</p>
-              <p className="stat-value">{stats.uptime}%</p>
-            </div>
-          </div>
-        </section>
+        React.createElement(
+          "div",
+          { className: "comfort-card" },
+          React.createElement("h3", null, "Comfort Analysis"),
+          React.createElement(
+            "div",
+            { className: "comfort-meter" },
+            React.createElement(
+              "div",
+              { className: "meter-background" },
+              React.createElement("div", {
+                className: "meter-fill",
+                style: { width: `${analysisData.aiAnalysis.comfortIndex}%` },
+              })
+            ),
+            React.createElement(
+              "div",
+              { className: "comfort-info" },
+              React.createElement(
+                "span",
+                {
+                  className: "comfort-level",
+                  style: {
+                    color: getComfortLevel(analysisData.aiAnalysis.comfortIndex)
+                      .color,
+                  },
+                },
+                getComfortLevel(analysisData.aiAnalysis.comfortIndex).level
+              ),
+              React.createElement(
+                "span",
+                { className: "comfort-score" },
+                analysisData.aiAnalysis.comfortIndex,
+                "/100"
+              )
+            )
+          )
+        ),
 
-        <section className="city-data-section">
-          <div className="section-header">
-            <h2 className="section-title">City Data</h2>
-            <div className="action-buttons">
-              <button
-                className="btn btn-primary"
-                onClick={refreshData}
-                disabled={isLoading}
-              >
-                <span className="material-symbols-outlined">
-                  {isLoading ? "refresh" : "refresh"}
-                </span>
-                <span>{isLoading ? "Refreshing..." : "Refresh Data"}</span>
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => setShowApiKeyForm(!showApiKeyForm)}
-              >
-                <span className="material-symbols-outlined">key</span>
-                <span>Update API Key</span>
-              </button>
-            </div>
-          </div>
+        React.createElement(
+          "div",
+          { className: "factors-grid" },
+          React.createElement(
+            "div",
+            { className: "factor-card" },
+            React.createElement("h4", null, "🌡️ Temperature"),
+            React.createElement(
+              "p",
+              null,
+              Math.round(analysisData.main.temp),
+              "°C"
+            ),
+            React.createElement(
+              "p",
+              { className: "factor-desc" },
+              analysisData.main.temp < 10
+                ? "Cold"
+                : analysisData.main.temp < 20
+                ? "Cool"
+                : analysisData.main.temp < 30
+                ? "Warm"
+                : "Hot"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "factor-card" },
+            React.createElement("h4", null, "💧 Humidity"),
+            React.createElement("p", null, analysisData.main.humidity, "%"),
+            React.createElement(
+              "p",
+              { className: "factor-desc" },
+              analysisData.main.humidity < 30
+                ? "Dry"
+                : analysisData.main.humidity < 60
+                ? "Comfortable"
+                : "Humid"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "factor-card" },
+            React.createElement("h4", null, "💨 Wind"),
+            React.createElement("p", null, analysisData.wind.speed, " m/s"),
+            React.createElement(
+              "p",
+              { className: "factor-desc" },
+              analysisData.wind.speed < 3
+                ? "Calm"
+                : analysisData.wind.speed < 7
+                ? "Breezy"
+                : "Windy"
+            )
+          ),
+          React.createElement(
+            "div",
+            { className: "factor-card" },
+            React.createElement("h4", null, "☁️ Conditions"),
+            React.createElement("p", null, analysisData.weather[0].main),
+            React.createElement(
+              "p",
+              { className: "factor-desc" },
+              analysisData.weather[0].description
+            )
+          )
+        ),
 
-          {showApiKeyForm && (
-            <div className="api-key-form">
-              <form onSubmit={handleApiKeyUpdate}>
-                <input
-                  type="password"
-                  placeholder="Enter new API key"
-                  value={newApiKey}
-                  onChange={(e) => setNewApiKey(e.target.value)}
-                  className="api-key-input"
-                />
-                <div className="form-actions">
-                  <button type="submit" className="btn btn-primary">
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setShowApiKeyForm(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
+        React.createElement(
+          "div",
+          { className: "ai-insights" },
+          React.createElement("h3", null, "🤖 AI Insights"),
+          React.createElement(
+            "p",
+            { className: "insight-text" },
+            analysisData.aiAnalysis.analysis
+          ),
 
-          <div className="table-container">
-            <table className="cities-table">
-              <thead>
-                <tr>
-                  <th>City</th>
-                  <th>
-                    <button
-                      className="temp-header-btn"
-                      onClick={toggleTemperatureUnit}
-                    >
-                      Temp. ({temperatureUnit === "celsius" ? "°C" : "°F"})
-                    </button>
-                  </th>
-                  <th>Last Updated</th>
-                  <th>AI Forecast</th>
-                </tr>
-              </thead>
-              <tbody>
-                {cities.map((city) => (
-                  <tr key={city.id} className="city-row">
-                    <td className="city-name">{city.name}</td>
-                    <td className="city-temp">
-                      {formatTemperature(city.temp)}
-                    </td>
-                    <td className="city-updated">{getTimeAgo(city.updated)}</td>
-                    <td className="city-forecast">
-                      <span className="forecast-badge">{city.forecast}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          React.createElement(
+            "div",
+            { className: "recommendations-section" },
+            React.createElement("h4", null, "Recommended Actions"),
+            React.createElement(
+              "ul",
+              null,
+              analysisData.aiAnalysis.recommendations.map((rec, index) =>
+                React.createElement("li", { key: index }, rec)
+              )
+            )
+          )
+        )
+      ),
 
-        <section className="notifications-section">
-          <h2 className="section-title">Notifications</h2>
-          <div className="notifications-list">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={`notification-item ${notification.type}`}
-              >
-                <div className="notification-icon">
-                  <span className="material-symbols-outlined">
-                    {notification.type === "error" ? "error" : "check_circle"}
-                  </span>
-                </div>
-                <div className="notification-content">
-                  <p className="notification-message">{notification.message}</p>
-                  <p className="notification-time">{notification.time}</p>
-                </div>
-                <div className="notification-arrow">
-                  <span className="material-symbols-outlined">
-                    chevron_right
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </main>
-
-      <footer className="admin-footer">
-        <nav className="footer-nav">
-          <button
-            className={`nav-item ${activeTab === "home" ? "active" : ""}`}
-            onClick={() => setActiveTab("home")}
-          >
-            <span className="material-symbols-outlined">home</span>
-            <span className="nav-label">Home</span>
-          </button>
-          <button
-            className={`nav-item ${activeTab === "forecast" ? "active" : ""}`}
-            onClick={() => setActiveTab("forecast")}
-          >
-            <span className="material-symbols-outlined">thermostat</span>
-            <span className="nav-label">Forecast</span>
-          </button>
-          <button
-            className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
-            onClick={() => setActiveTab("settings")}
-          >
-            <span className="material-symbols-outlined">settings</span>
-            <span className="nav-label">Settings</span>
-          </button>
-        </nav>
-      </footer>
-    </div>
+    React.createElement(
+      "nav",
+      { className: "bottom-nav" },
+      React.createElement(
+        "a",
+        { href: "/", className: "nav-item" },
+        React.createElement("i", { className: "fas fa-home" }),
+        React.createElement("span", null, "Current")
+      ),
+      React.createElement(
+        "a",
+        { href: "/forecast", className: "nav-item" },
+        React.createElement("i", { className: "fas fa-chart-line" }),
+        React.createElement("span", null, "Forecast")
+      ),
+      React.createElement(
+        "a",
+        { href: "/analysis", className: "nav-item active" },
+        React.createElement("i", { className: "fas fa-chart-bar" }),
+        React.createElement("span", null, "Analysis")
+      )
+    )
   );
-};
-
-export default WeatherAdmin;
+}

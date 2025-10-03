@@ -1,263 +1,196 @@
-import React, { useState, useEffect } from "react";
-import "./AIInsights.css";
+const { useState, useEffect } = React;
 
-const AIInsights = () => {
-  const [temperatureData, setTemperatureData] = useState([
-    { day: "Mon", value: 21 },
-    { day: "Tue", value: 25 },
-    { day: "Wed", value: 41 },
-    { day: "Thu", value: 33 },
-    { day: "Fri", value: 101 },
-    { day: "Sat", value: 61 },
-    { day: "Sun", value: 45 },
-  ]);
+function Second() {
+  const [forecast, setForecast] = useState(null);
+  const [city, setCity] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [currentTemperature, setCurrentTemperature] = useState(25);
-  const [temperatureUnit, setTemperatureUnit] = useState("celsius");
-  const [activeTab, setActiveTab] = useState("insights");
+  const getForecast = async (cityName = city) => {
+    if (!cityName.trim()) return;
 
-  // Toggle between Celsius and Fahrenheit
-  const toggleTemperatureUnit = () => {
-    setTemperatureUnit((prevUnit) =>
-      prevUnit === "celsius" ? "fahrenheit" : "celsius"
-    );
-  };
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/forecast?city=${encodeURIComponent(
+          cityName
+        )}`
+      );
+      const data = await response.json();
 
-  // Convert temperature based on selected unit
-  const convertTemperature = (temp) => {
-    if (temperatureUnit === "fahrenheit") {
-      return Math.round((temp * 9) / 5 + 32);
+      if (data.cod === "200") {
+        setForecast(data);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
     }
-    return temp;
   };
 
-  // Handle day selection from the chart
-  const handleDaySelect = (dayIndex) => {
-    setSelectedDay(dayIndex);
-  };
-
-  // Generate SVG path data from temperature values
-  const generateChartPath = () => {
-    const points = temperatureData.map((data, index) => {
-      const x = index * (472 / (temperatureData.length - 1));
-      // Scale the y value to fit within the chart height (0-148)
-      const y = 148 - (data.value / 101) * 148;
-      return `${x},${y}`;
+  // Group forecast by day
+  const groupForecastByDay = (list) => {
+    const grouped = {};
+    list.forEach((item) => {
+      const date = new Date(item.dt * 1000).toLocaleDateString();
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(item);
     });
-
-    return `M${points.join(" L")}`;
+    return grouped;
   };
 
-  // Generate gradient area for the chart
-  const generateAreaPath = () => {
-    const points = temperatureData.map((data, index) => {
-      const x = index * (472 / (temperatureData.length - 1));
-      const y = 148 - (data.value / 101) * 148;
-      return `${x},${y}`;
-    });
-
-    return `M${points.join(" L")} L472,149 L0,149 Z`;
+  const getWeatherIcon = (condition) => {
+    const icons = {
+      Clear: "fa-sun",
+      Clouds: "fa-cloud",
+      Rain: "fa-cloud-rain",
+      Drizzle: "fa-cloud-drizzle",
+      Thunderstorm: "fa-bolt",
+      Snow: "fa-snowflake",
+      Mist: "fa-smog",
+    };
+    return icons[condition] || "fa-cloud";
   };
 
-  // Format temperature with unit
-  const formatTemperature = (temp) => {
-    return `${convertTemperature(temp)}°${
-      temperatureUnit === "celsius" ? "C" : "F"
-    }`;
-  };
+  useEffect(() => {
+    if (city) {
+      getForecast();
+    }
+  }, []);
 
-  return (
-    <div className="ai-insights-app">
-      <header className="app-header">
-        <div className="header-content">
-          <button className="back-button">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h2 className="header-title">AI Insights</h2>
-          <div className="header-placeholder"></div>
-        </div>
-      </header>
+  return React.createElement(
+    "div",
+    { className: "forecast-container" },
+    React.createElement(
+      "header",
+      { className: "app-header" },
+      React.createElement("h1", null, "📅 5-Day Forecast"),
+      React.createElement(
+        "p",
+        null,
+        "Extended weather predictions with AI insights"
+      )
+    ),
 
-      <main className="main-content">
-        <div className="temperature-card">
-          <div className="temperature-header">
-            <p className="temperature-label">Temperature Trend</p>
-            <div className="temperature-display">
-              <p
-                className="current-temperature"
-                onClick={toggleTemperatureUnit}
-              >
-                {formatTemperature(currentTemperature)}
-              </p>
-              <div className="temperature-change">
-                <p className="time-range">Next 7 Days</p>
-                <p className="change-value positive">
-                  <span className="material-symbols-outlined">
-                    arrow_drop_up
-                  </span>
-                  <span>2%</span>
-                </p>
-              </div>
-            </div>
-          </div>
+    React.createElement(
+      "div",
+      { className: "search-section" },
+      React.createElement(
+        "div",
+        { className: "search-box" },
+        React.createElement("input", {
+          type: "text",
+          placeholder: "Enter city name for forecast...",
+          value: city,
+          onChange: (e) => setCity(e.target.value),
+          onKeyPress: (e) => e.key === "Enter" && getForecast(),
+        }),
+        React.createElement(
+          "button",
+          { onClick: () => getForecast() },
+          React.createElement("i", { className: "fas fa-search" })
+        )
+      )
+    ),
 
-          <div className="temperature-chart">
-            <div className="chart-container">
-              <svg
-                className="chart"
-                viewBox="0 0 472 150"
-                preserveAspectRatio="none"
-              >
-                {/* Gradient area */}
-                <path
-                  d={generateAreaPath()}
-                  fill="url(#chartGradient)"
-                  className="chart-area"
-                />
+    loading &&
+      React.createElement(
+        "div",
+        { className: "loading" },
+        "Loading forecast..."
+      ),
 
-                {/* Line */}
-                <path
-                  d={generateChartPath()}
-                  stroke="#F9F506"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                  className="chart-line"
-                />
+    forecast &&
+      React.createElement(
+        "div",
+        { className: "forecast-content" },
+        React.createElement(
+          "h2",
+          null,
+          forecast.city.name,
+          ", ",
+          forecast.city.country
+        ),
 
-                {/* Points */}
-                {temperatureData.map((data, index) => {
-                  const x = index * (472 / (temperatureData.length - 1));
-                  const y = 148 - (data.value / 101) * 148;
+        React.createElement(
+          "div",
+          { className: "forecast-days" },
+          Object.entries(groupForecastByDay(forecast.list))
+            .slice(0, 5)
+            .map(([date, dayData]) =>
+              React.createElement(
+                "div",
+                { key: date, className: "forecast-day" },
+                React.createElement(
+                  "h3",
+                  null,
+                  new Date(date).toLocaleDateString("en-US", {
+                    weekday: "long",
+                    month: "short",
+                    day: "numeric",
+                  })
+                ),
 
-                  return (
-                    <circle
-                      key={index}
-                      cx={x}
-                      cy={y}
-                      r="4"
-                      fill="#F9F506"
-                      className={`chart-point ${
-                        selectedDay === index ? "selected" : ""
-                      }`}
-                      onClick={() => handleDaySelect(index)}
-                    />
-                  );
-                })}
+                dayData
+                  .filter((_, index) => index % 4 === 0)
+                  .slice(0, 3)
+                  .map((item, index) =>
+                    React.createElement(
+                      "div",
+                      { key: index, className: "forecast-item" },
+                      React.createElement(
+                        "p",
+                        { className: "time" },
+                        new Date(item.dt * 1000).toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          hour12: true,
+                        })
+                      ),
+                      React.createElement("i", {
+                        className: `fas ${getWeatherIcon(
+                          item.weather[0].main
+                        )}`,
+                      }),
+                      React.createElement(
+                        "p",
+                        { className: "temp" },
+                        Math.round(item.main.temp),
+                        "°C"
+                      ),
+                      React.createElement(
+                        "p",
+                        { className: "desc" },
+                        item.weather[0].description
+                      )
+                    )
+                  )
+              )
+            )
+        )
+      ),
 
-                <defs>
-                  <linearGradient
-                    id="chartGradient"
-                    x1="0%"
-                    y1="0%"
-                    x2="0%"
-                    y2="100%"
-                  >
-                    <stop offset="0%" stopColor="#F9F506" stopOpacity="0.3" />
-                    <stop offset="100%" stopColor="#F9F506" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-
-            <div className="chart-labels">
-              {temperatureData.map((data, index) => (
-                <p
-                  key={index}
-                  className={`chart-label ${
-                    selectedDay === index ? "selected" : ""
-                  }`}
-                  onClick={() => handleDaySelect(index)}
-                >
-                  {data.day}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          {selectedDay !== null && (
-            <div className="day-details">
-              <p>
-                {temperatureData[selectedDay].day}:{" "}
-                {formatTemperature(temperatureData[selectedDay].value)}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="forecast-section">
-          <h2 className="section-title">Tomorrow's AI Forecast</h2>
-          <p className="forecast-description">
-            Our AI predicts a sunny day with a high of {formatTemperature(28)}{" "}
-            and a low of {formatTemperature(18)}. Expect gentle breezes from the
-            south. There's a 5% chance of light showers in the late afternoon.
-          </p>
-        </div>
-
-        <div className="anomalies-section">
-          <h2 className="section-title">Anomalies</h2>
-          <div className="anomalies-list">
-            <div className="anomaly-card">
-              <div className="anomaly-icon heatwave">
-                <span className="material-symbols-outlined">thermostat</span>
-              </div>
-              <div className="anomaly-details">
-                <p className="anomaly-title">Heatwave Alert</p>
-                <p className="anomaly-date">July 15 - July 20</p>
-              </div>
-            </div>
-
-            <div className="anomaly-card">
-              <div className="anomaly-icon rainstorm">
-                <span className="material-symbols-outlined">thunderstorm</span>
-              </div>
-              <div className="anomaly-details">
-                <p className="anomaly-title">Rainstorm Warning</p>
-                <p className="anomaly-date">August 5 - August 7</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <footer className="app-footer">
-        <nav className="bottom-nav">
-          <button
-            className={`nav-item ${activeTab === "home" ? "active" : ""}`}
-            onClick={() => setActiveTab("home")}
-          >
-            <span className="material-symbols-outlined">home</span>
-            <span className="nav-label">Home</span>
-          </button>
-
-          <button
-            className={`nav-item ${activeTab === "insights" ? "active" : ""}`}
-            onClick={() => setActiveTab("insights")}
-          >
-            <span className="material-symbols-outlined">insights</span>
-            <span className="nav-label">Insights</span>
-          </button>
-
-          <button
-            className={`nav-item ${activeTab === "filters" ? "active" : ""}`}
-            onClick={() => setActiveTab("filters")}
-          >
-            <span className="material-symbols-outlined">filter_list</span>
-            <span className="nav-label">Filters</span>
-          </button>
-
-          <button
-            className={`nav-item ${activeTab === "settings" ? "active" : ""}`}
-            onClick={() => setActiveTab("settings")}
-          >
-            <span className="material-symbols-outlined">settings</span>
-            <span className="nav-label">Settings</span>
-          </button>
-        </nav>
-      </footer>
-    </div>
+    React.createElement(
+      "nav",
+      { className: "bottom-nav" },
+      React.createElement(
+        "a",
+        { href: "/", className: "nav-item" },
+        React.createElement("i", { className: "fas fa-home" }),
+        React.createElement("span", null, "Current")
+      ),
+      React.createElement(
+        "a",
+        { href: "/forecast", className: "nav-item active" },
+        React.createElement("i", { className: "fas fa-chart-line" }),
+        React.createElement("span", null, "Forecast")
+      ),
+      React.createElement(
+        "a",
+        { href: "/analysis", className: "nav-item" },
+        React.createElement("i", { className: "fas fa-chart-bar" }),
+        React.createElement("span", null, "Analysis")
+      )
+    )
   );
-};
-
-export default AIInsights;
+}
