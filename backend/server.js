@@ -6,15 +6,17 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
+app.use("/css", express.static(path.join(__dirname, "../frontend/css")));
 
+// Weather API configuration
 const WEATHER_API_KEY = "your_openweather_api_key"; // Replace with your API key
 const WEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5";
 
-
+// AI Analysis function (simplified)
 function analyzeWeather(data) {
   const temp = data.main.temp;
   const conditions = data.weather[0].main.toLowerCase();
@@ -161,37 +163,12 @@ app.get("/api/forecast", async (req, res) => {
   }
 });
 
+// ADD THIS ROOT ROUTE - THIS IS WHAT WAS MISSING!
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/index.html"));
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Access the app at: http://localhost:${PORT}`);
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
