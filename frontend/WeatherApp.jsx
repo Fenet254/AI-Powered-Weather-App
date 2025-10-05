@@ -1,16 +1,22 @@
-cat > (jsx / WeatherApp.jsx) << "EOF";
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import "../css/home.css";
+import { Line } from "react-chartjs-2";
 
-function WeatherApp() {
+export default function WeatherApp() {
   const [weather, setWeather] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [forecast, setForecast] = useState([]);
   const [city, setCity] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    document.body.className = theme;
+  }, [theme]);
 
   const getWeather = async (cityName = city) => {
     if (!cityName.trim()) return;
-
     setLoading(true);
     setError("");
     try {
@@ -21,8 +27,9 @@ function WeatherApp() {
 
       if (response.ok) {
         setWeather(data);
+        fetchForecast(cityName);
       } else {
-        setError(data.error || "Failed to fetch weather data");
+        setError(data.error || "Weather data not found");
       }
     } catch (err) {
       setError("Failed to connect to weather service");
@@ -31,155 +38,101 @@ function WeatherApp() {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    getWeather();
-  };
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          getWeatherByCoords(latitude, longitude);
-        },
-        (error) => {
-          setError("Unable to retrieve your location");
-        }
-      );
-    } else {
-      setError("Geolocation is not supported by this browser");
-    }
-  };
-
-  const getWeatherByCoords = async (lat, lon) => {
-    setLoading(true);
+  const fetchForecast = async (cityName) => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/weather?lat=${lat}&lon=${lon}`
+      const res = await fetch(
+        `http://localhost:3000/api/forecast?city=${encodeURIComponent(cityName)}`
       );
-      const data = await response.json();
-
-      if (response.ok) {
-        setWeather(data);
-        setCity(data.name);
-      } else {
-        setError(data.error || "Failed to fetch weather data");
-      }
-    } catch (err) {
-      setError("Failed to connect to weather service");
-    } finally {
-      setLoading(false);
+      const data = await res.json();
+      if (res.ok) setForecast(data.list.slice(0, 6)); // first 6 time slots
+    } catch {
+      console.warn("Forecast unavailable");
     }
+  };
+
+  const handleVoiceSearch = () => {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      alert("Speech Recognition not supported");
+      return;
+    }
+    const recognition = new (window.SpeechRecognition ||
+      window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+    recognition.start();
+    recognition.onresult = (event) => {
+      const voiceCity = event.results[0][0].transcript;
+      setCity(voiceCity);
+      getWeather(voiceCity);
+    };
+  };
+
+  const getWeatherIcon = (condition) => {
+    const icons = {
+      Clear: "☀️",
+      Clouds: "☁️",
+      Rain: "🌧️",
+      Drizzle: "🌦️",
+      Thunderstorm: "⛈️",
+      Snow: "❄️",
+      Mist: "🌫️",
+      Fog: "🌫️",
+    };
+    return icons[condition] || "🌤️";
   };
 
   return (
-    <div className="weather-app">
-      <div className="app-header">
-        <div className="location-container">
-          <h1>🌤 AI Weather App</h1>
+    <div className={`weather-app ${weather ? weather.weather[0].main.toLowerCase() : ""}`}>
+      <header className="app-header">
+        <h1>🌤 AI Weather App</h1>
+        <div className="theme-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+          {theme === "light" ? "🌙" : "☀️"}
         </div>
-        <form className="search-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            placeholder="Enter city name"
-            required
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? "Loading..." : "Get Weather"}
-          </button>
-          <button type="button" id="voice-btn">
-            🎤
-          </button>
-          <button type="button" onClick={getCurrentLocation}>
-            📍 My Location
-          </button>
-        </form>
-      </div>
+      </header>
 
-      <div className="main-content">
-        {error && (
-          <div className="weather-card error">
-            <p>Error: {error}</p>
+      <form className="search-form" onSubmit={(e) => { e.preventDefault(); getWeather(); }}>
+        <input
+          type="text"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          placeholder="Enter city name..."
+        />
+        <button disabled={loading}>{loading ? "⏳" : "🔍"}</button>
+        <button type="button" onClick={handleVoiceSearch}>🎤</button>
+      </form>
+
+      {error && <div className="error-msg">⚠️ {error}</div>}
+
+      {weather && !loading && (
+        <div className="weather-card glass">
+          <h2>{weather.name}</h2>
+          <div className="temp">{Math.round(weather.main.temp)}°C</div>
+          <div className="condition">
+            {getWeatherIcon(weather.weather[0].main)} {weather.weather[0].description}
           </div>
-        )}
+          <div className="details">
+            <p>💧 {weather.main.humidity}%</p>
+            <p>🌬️ {weather.wind.speed} km/h</p>
+          </div>
 
-        {weather && !loading && (
-          <>
-            <div className="weather-card current-weather">
-              <div className="weather-primary">
-                <div className="temperature-section">
-                  <h2 className="temperature">{weather.name}</h2>
-                  <p className="condition">{weather.weather[0].description}</p>
-                </div>
-                <div className="weather-icon">
-                  {getWeatherIcon(weather.weather[0].main)}
-                </div>
-              </div>
-
-              <div className="weather-details">
-                <div className="detail-item">
-                  <p className="detail-label">Temperature</p>
-                  <p className="detail-value">
-                    {Math.round(weather.main.temp)}°C
-                  </p>
-                </div>
-                <div className="detail-item">
-                  <p className="detail-label">Humidity</p>
-                  <p className="detail-value">{weather.main.humidity}%</p>
-                </div>
-                <div className="detail-item">
-                  <p className="detail-label">Wind</p>
-                  <p className="detail-value">{weather.wind.speed} km/h</p>
-                </div>
-              </div>
+          {forecast.length > 0 && (
+            <div className="chart-container">
+              <Line
+                data={{
+                  labels: forecast.map((f) => f.dt_txt.split(" ")[1].slice(0, 5)),
+                  datasets: [
+                    {
+                      label: "Temp (°C)",
+                      data: forecast.map((f) => f.main.temp),
+                      borderWidth: 2,
+                    },
+                  ],
+                }}
+                options={{ responsive: true, scales: { y: { beginAtZero: false } } }}
+              />
             </div>
-
-            {weather.aiAnalysis && (
-              <div className="weather-card ai-forecast">
-                <div className="forecast-content">
-                  <div className="forecast-icon">🤖</div>
-                  <div>
-                    <h3 className="forecast-title">AI Analysis</h3>
-                    <p className="forecast-text">
-                      {weather.aiAnalysis.analysis}
-                    </p>
-                    <div>
-                      <strong>Recommendations:</strong>
-                      <ul>
-                        {weather.aiAnalysis.recommendations.map(
-                          (rec, index) => (
-                            <li key={index}>{rec}</li>
-                          )
-                        )}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
-
-function getWeatherIcon(condition) {
-  const icons = {
-    Clear: "☀️",
-    Clouds: "☁️",
-    Rain: "🌧️",
-    Drizzle: "🌦️",
-    Thunderstorm: "⛈️",
-    Snow: "❄️",
-    Mist: "🌫️",
-    Fog: "🌫️",
-  };
-  return icons[condition] || "🌤️";
-}
-
-export default WeatherApp;
-EOF;
