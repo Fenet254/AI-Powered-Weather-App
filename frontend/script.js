@@ -1,5 +1,5 @@
 
-// Weather App JavaScript
+
 document
   .getElementById("weather-form")
   .addEventListener("submit", async (e) => {
@@ -7,6 +7,8 @@ document
     const city = document.getElementById("city-input").value;
     await getWeather(city);
   });
+
+
 
 async function getWeather(city) {
   try {
@@ -25,6 +27,8 @@ async function getWeather(city) {
   }
 }
 
+
+
 function displayWeather(data) {
   document.getElementById("city-name").textContent = data.name;
   document.getElementById("temp").textContent = Math.round(data.main.temp);
@@ -38,12 +42,12 @@ function displayWeather(data) {
       data.aiAnalysis.analysis;
   }
 
-  // Show the weather result
+  
   document.getElementById("weather-result").classList.remove("hidden");
   document.querySelector(".ai-forecast").classList.remove("hidden");
 }
 
-// Location button
+
 document.getElementById("location-btn").addEventListener("click", () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
