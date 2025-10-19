@@ -41,21 +41,27 @@ def get_current_weather(request: WeatherRequest):
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch weather data")
     return response.json()
 
-@app.post("/predict-temperature")
-def predict_temperature(request: WeatherRequest):
+@app.post("/predict-weather")
+def predict_weather(request: WeatherRequest):
     try:
         model = joblib.load("backend/model.pkl")
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Model not trained yet. Please run train.py first.")
 
-    # For simplicity, use current temperature as input for next hour prediction
-    # In a real app, you'd use more features
+    # Get current weather data
     current_weather = get_current_weather(request)
     current_temp = current_weather["current"]["temperature_2m"]
+    current_humidity = current_weather["current"]["relative_humidity_2m"]
+    current_wind = current_weather["current"]["wind_speed_10m"]
 
-    # Predict next hour temperature (dummy prediction based on current)
-    prediction = model.predict(np.array([[current_temp]]))[0]
-    return {"predicted_temperature": prediction}
+    # Predict next hour temperature, humidity, and wind speed
+    input_features = np.array([[current_temp, current_humidity, current_wind]])
+    prediction = model.predict(input_features)[0]
+    return {
+        "predicted_temperature": prediction[0],
+        "predicted_humidity": prediction[1],
+        "predicted_wind_speed": prediction[2]
+    }
 
 if __name__ == "__main__":
     import uvicorn
