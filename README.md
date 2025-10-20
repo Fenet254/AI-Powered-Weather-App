@@ -1,6 +1,9 @@
 
  
- AI-Powered Weather App
+ <hi>AI-Powered Weather App</h1>
+
+
+ 
 Welcome to the AI-Powered Weather App — a smart, lightweight tool that helps you check the weather and plan your day with confidence. Built by students, for students, this app combines real-time data with AI predictions to give you more than just temperature updates — it gives you insight.
   What Makes It “AI-Powered”?
 This isn’t just another weather app. It uses machine learning to:
