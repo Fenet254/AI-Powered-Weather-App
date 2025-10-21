@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 app = FastAPI()
 
-# Enable CORS for frontend
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify your frontend URL
