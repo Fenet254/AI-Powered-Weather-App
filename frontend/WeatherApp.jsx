@@ -8,7 +8,6 @@ function WeatherApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [currentLocation, setCurrentLocation] = useState(null);
-
   const getCoordinates = async (city) => {
     const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}&limit=1`);
     const data = await response.json();
