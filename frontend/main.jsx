@@ -14,6 +14,7 @@ root.render(
         <p>Get accurate weather forecasts with AI predictions</p>
       </header>
       <main>
+
         <WeatherApp />
       </main>
       <footer className="app-footer">
