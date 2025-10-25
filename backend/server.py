@@ -17,7 +17,6 @@ app.add_middleware(
 )
 
 
-# OpenMeteo API URL for current weather
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 
 class WeatherRequest(BaseModel):
