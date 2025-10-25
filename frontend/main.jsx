@@ -10,6 +10,7 @@ root.render(
 
     <div className="app-container">
       <header className="app-header">
+
         <h1><i className="fas fa-cloud-sun"></i> AI-Powered Weather App</h1>
         <p>Get accurate weather forecasts with AI predictions</p>
       </header>
