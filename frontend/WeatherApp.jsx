@@ -18,6 +18,7 @@ function WeatherApp() {
   };
 
 
+
   const getWeatherIcon = (temp) => {
     if (temp >= 30) return 'fas fa-sun';
     if (temp >= 20) return 'fas fa-cloud-sun';
