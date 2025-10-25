@@ -7,6 +7,7 @@ import './styles/App.css'
 const root = createRoot(document.getElementById('root'))
 root.render(
   <React.StrictMode>
+
     <div className="app-container">
       <header className="app-header">
         <h1><i className="fas fa-cloud-sun"></i> AI-Powered Weather App</h1>
