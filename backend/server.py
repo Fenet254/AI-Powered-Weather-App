@@ -16,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # OpenMeteo API URL for current weather
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 
