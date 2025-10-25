@@ -17,6 +17,7 @@ def fetch_historical_weather(lat, lon, days=30):
 
 
     dates = [datetime.now() - timedelta(days=i) for i in range(days)]
+
     temperatures = np.random.normal(20, 5, days)  # Mean 20°C, std 5°C
     humidities = np.random.normal(60, 10, days)  # Mean 60%, std 10%
     wind_speeds = np.random.normal(10, 3, days)  # Mean 10 km/h, std 3 km/h
