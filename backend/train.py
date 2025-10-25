@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Function to fetch historical weather data (simulated for demo)
 def fetch_historical_weather(lat, lon, days=30):
-    # In a real scenario, use OpenMeteo historical API or another source
-    # For demo, generate synthetic data
+    
+
+
     dates = [datetime.now() - timedelta(days=i) for i in range(days)]
     temperatures = np.random.normal(20, 5, days)  # Mean 20°C, std 5°C
     humidities = np.random.normal(60, 10, days)  # Mean 60%, std 10%
