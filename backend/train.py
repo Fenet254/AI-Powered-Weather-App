@@ -23,6 +23,7 @@ def fetch_historical_weather(lat, lon, days=30):
     wind_speeds = np.random.normal(10, 3, days)  # Mean 10 km/h, std 3 km/h
     return pd.DataFrame({"date": dates, "temperature": temperatures, "humidity": humidities, "wind_speed": wind_speeds})
 
+
 # Train a RandomForest model multiple times
 # Predict next hour temperature, humidity, and wind speed based on current values
 def train_model(num_iterations=10):
