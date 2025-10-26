@@ -27,6 +27,7 @@ class WeatherRequest(BaseModel):
 
 
 
+
 @app.get("/")
 def read_root():
     return {"message": "AI-Powered Weather App Backend"}
