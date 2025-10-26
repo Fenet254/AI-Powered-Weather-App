@@ -39,6 +39,8 @@ def get_current_weather(request: WeatherRequest):
         "hourly": ["temperature_2m", "relative_humidity_2m", "wind_speed_10m"],
         "timezone": "auto"
     }
+
+
     response = requests.get(WEATHER_URL, params=params)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail="Failed to fetch weather data")
