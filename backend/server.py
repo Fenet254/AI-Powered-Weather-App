@@ -24,6 +24,8 @@ class WeatherRequest(BaseModel):
     latitude: float
     longitude: float
 
+
+
 @app.get("/")
 def read_root():
     return {"message": "AI-Powered Weather App Backend"}
