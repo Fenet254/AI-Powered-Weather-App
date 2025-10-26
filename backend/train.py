@@ -27,9 +27,7 @@ def fetch_historical_weather(lat, lon, days=30):
 # Predict next hour temperature, humidity, and wind speed based on current values
 def train_model(num_iterations=10):
     for iteration in range(1, num_iterations + 1):
-        logger.info(f"Starting training iteration {iteration}")
-
-        # Generate synthetic training data with multiple features
+        logger.info(f"Starting training iteration 
         num_samples = 1000
         current_temp = np.random.rand(num_samples) * 40  # 0-40°C
         current_humidity = np.random.rand(num_samples) * 100  # 0-100%
