@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import joblib
+
 import numpy as np
 from pydantic import BaseModel
 
