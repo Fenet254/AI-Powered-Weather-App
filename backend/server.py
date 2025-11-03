@@ -8,7 +8,6 @@ import numpy as np
 from pydantic import BaseModel
 
 app = FastAPI()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify your frontend URL
