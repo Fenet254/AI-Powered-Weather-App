@@ -19,8 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 
 )
-
-
 WEATHER_URL = "https://api.open-meteo.com/v1/forecast"
 
 class WeatherRequest(BaseModel):
